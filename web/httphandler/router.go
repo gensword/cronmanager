@@ -15,7 +15,7 @@ import (
 
 func GetRouter () *gin.Engine{
 	gin.DisableConsoleColor()
-	ginLog, err := os.OpenFile(path.Join(conf.Config.GetString("log.path"), conf.Config.GetString("log.ginLog")), os.O_APPEND|os.O_WRONLY, 0600)
+	ginLog, err := os.Create(path.Join(conf.Config.GetString("log.path"), conf.Config.GetString("log.ginLog")))
 	if err != nil {
 		panic(err)
 	}

@@ -10,12 +10,10 @@
 - **swagger apis**
 
 ##### Steps
-
-1. `go mod tidy` .
-2. Cofig your `redis` `mysql` `http server port` `log` and `JWT key` .
-3. `go run main/main.go -create_table` to run the server and create tables in mysql database at first time, `go run main/main.go` just run the server.
-4. Open your browser and type [http://localhost:8888/swagger/index.html](http://localhost:8888/swagger/index.html) in
-5. add a cron job
+1. Cofig your `redis` `mysql` `http server port` `log` and `JWT key` .
+2. `go run main/main.go -create_table` to run the server and create tables in mysql database at first time, `go run main/main.go` just run the server.
+3. Open your browser and type [http://localhost:8888/swagger/index.html](http://localhost:8888/swagger/index.html) in
+4. add a cron job
 
 ##### Need kown
 
