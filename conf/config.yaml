@@ -1,0 +1,20 @@
+redis:
+  addr: "127.0.0.1"
+  port: 6379
+  db: 3
+  password: ""
+mysql:
+  addr: "127.0.0.1"
+  port: 3306
+  user: ""
+  password: ""
+  dbName: "cron"
+  charset: "utf8"
+httpServer:
+  port: 8888
+log:
+  path: "logs"
+  fileName: "app.log"
+  ginLog: "gin.log"
+JWT:
+  secretKey:

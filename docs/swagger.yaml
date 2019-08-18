@@ -1,0 +1,334 @@
+basePath: /api/v1
+definitions:
+  httphandler.Response:
+    properties:
+      code:
+        type: integer
+      data:
+        type: object
+      message:
+        type: string
+    type: object
+  model.User:
+    properties:
+      password:
+        type: string
+      user_name:
+        type: string
+    type: object
+  param.AddJob:
+    properties:
+      command:
+        description: command to run
+        type: string
+      name:
+        description: job name
+        type: string
+      spec:
+        description: job spec
+        type: string
+      status:
+        description: 0 stop，1 run
+        type: integer
+    type: object
+  param.ModifyJob:
+    properties:
+      command:
+        description: command to run
+        type: string
+      id:
+        description: job id
+        type: integer
+      name:
+        description: job name
+        type: string
+      spec:
+        description: job spec
+        type: string
+      status:
+        description: 0 stop, 1 run
+        type: integer
+    type: object
+  param.User:
+    properties:
+      password:
+        description: password
+        type: string
+      user_name:
+        description: username
+        type: string
+    type: object
+host: '{{.Host}}'
+info:
+  contact: {}
+  description: a cron manage instead of linux crontab
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  title: Cronmanager Api
+  version: "1.0"
+paths:
+  /jobs:
+    get:
+      description: get jobs list
+      parameters:
+      - default: 1
+        description: job status(0 stop 1 running)
+        enum:
+        - 0
+        - 1
+        in: query
+        name: status
+        type: integer
+      - description: job name condition query
+        in: query
+        name: job_name
+        type: string
+      - description: jwt token for auth
+        in: header
+        name: Authorization
+        type: sting
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/httphandler.Response'
+            type: array
+      summary: JobList
+      tags:
+      - Jobs
+    post:
+      description: add a single job
+      parameters:
+      - description: auth token
+        in: header
+        name: Authorization
+        type: string
+      - description: single job to add
+        in: body
+        name: job
+        required: true
+        schema:
+          $ref: '#/definitions/param.AddJob'
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/httphandler.Response'
+            type: array
+      summary: Add a single job
+      tags:
+      - Job
+    put:
+      description: modify a single job
+      parameters:
+      - description: jwt token for auth
+        in: header
+        name: Authorization
+        type: sting
+      - description: modify a single job
+        in: body
+        name: job
+        required: true
+        schema:
+          $ref: '#/definitions/param.ModifyJob'
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/httphandler.Response'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            items:
+              $ref: '#/definitions/httphandler.Response'
+            type: array
+      summary: Modify a single job
+      tags:
+      - Job
+  /jobs/{job_id}:
+    delete:
+      description: del a single job
+      parameters:
+      - description: jwt token for auth
+        in: header
+        name: Authorization
+        type: sting
+      - description: job id
+        in: path
+        name: job_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/httphandler.Response'
+            type: array
+      summary: Del a single job
+      tags:
+      - Job
+    get:
+      description: get a single job by job id
+      parameters:
+      - description: jwt token for auth
+        in: header
+        name: Authorization
+        type: sting
+      - description: job id
+        in: path
+        name: job_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/httphandler.Response'
+            type: array
+        "404":
+          description: Not Found
+          schema:
+            items:
+              $ref: '#/definitions/httphandler.Response'
+            type: array
+      summary: Get a Single Job
+      tags:
+      - Job
+  /log/{log_id}:
+    get:
+      description: Get a single log
+      parameters:
+      - description: jwt token for auth
+        in: header
+        name: Authorization
+        type: sting
+      - description: log id
+        in: path
+        name: log_id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/httphandler.Response'
+            type: array
+      summary: Single Log
+      tags:
+      - Log
+  /login:
+    post:
+      description: Login to get jwt token
+      parameters:
+      - description: username and password
+        in: body
+        name: credential
+        required: true
+        schema:
+          $ref: '#/definitions/model.User'
+          type: object
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/httphandler.Response'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            items:
+              $ref: '#/definitions/httphandler.Response'
+            type: array
+      summary: Login to get jwt token
+      tags:
+      - Login
+  /logs/job/{job_id}:
+    get:
+      description: Get logs list
+      parameters:
+      - description: jwt token for auth
+        in: header
+        name: Authorization
+        type: sting
+      - description: get logs for a special job
+        in: path
+        name: job_id
+        type: integer
+      - description: 0 query failed job logs, 1 query success job logs
+        in: query
+        name: status
+        type: integer
+      - default: 1
+        description: page num
+        in: query
+        name: page
+        type: integer
+      - default: 30
+        description: page size
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/httphandler.Response'
+            type: array
+      summary: Logs list
+      tags:
+      - Logs
+  /register:
+    post:
+      description: add user
+      parameters:
+      - description: username and password
+        in: body
+        name: credential
+        required: true
+        schema:
+          $ref: '#/definitions/param.User'
+          type: object
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            items:
+              $ref: '#/definitions/httphandler.Response'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            items:
+              $ref: '#/definitions/httphandler.Response'
+            type: array
+      summary: Register
+      tags:
+      - Register
+swagger: "2.0"

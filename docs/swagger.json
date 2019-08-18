@@ -1,0 +1,500 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "a cron manage instead of linux crontab",
+        "title": "Cronmanager Api",
+        "contact": {},
+        "license": {
+            "name": "Apache 2.0",
+            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+        },
+        "version": "1.0"
+    },
+    "host": "{{.Host}}",
+    "basePath": "/api/v1",
+    "paths": {
+        "/jobs": {
+            "get": {
+                "description": "get jobs list",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Jobs"
+                ],
+                "summary": "JobList",
+                "parameters": [
+                    {
+                        "enum": [
+                            0,
+                            1
+                        ],
+                        "type": "integer",
+                        "default": 1,
+                        "description": "job status(0 stop 1 running)",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "job name condition query",
+                        "name": "job_name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "sting",
+                        "description": "jwt token for auth",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/httphandler.Response"
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "modify a single job",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Job"
+                ],
+                "summary": "Modify a single job",
+                "parameters": [
+                    {
+                        "type": "sting",
+                        "description": "jwt token for auth",
+                        "name": "Authorization",
+                        "in": "header"
+                    },
+                    {
+                        "description": "modify a single job",
+                        "name": "job",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "$ref": "#/definitions/param.ModifyJob"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/httphandler.Response"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/httphandler.Response"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "add a single job",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Job"
+                ],
+                "summary": "Add a single job",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "auth token",
+                        "name": "Authorization",
+                        "in": "header"
+                    },
+                    {
+                        "description": "single job to add",
+                        "name": "job",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "$ref": "#/definitions/param.AddJob"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/httphandler.Response"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/jobs/{job_id}": {
+            "get": {
+                "description": "get a single job by job id",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Job"
+                ],
+                "summary": "Get a Single Job",
+                "parameters": [
+                    {
+                        "type": "sting",
+                        "description": "jwt token for auth",
+                        "name": "Authorization",
+                        "in": "header"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "job id",
+                        "name": "job_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/httphandler.Response"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/httphandler.Response"
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "del a single job",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Job"
+                ],
+                "summary": "Del a single job",
+                "parameters": [
+                    {
+                        "type": "sting",
+                        "description": "jwt token for auth",
+                        "name": "Authorization",
+                        "in": "header"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "job id",
+                        "name": "job_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/httphandler.Response"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/log/{log_id}": {
+            "get": {
+                "description": "Get a single log",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Log"
+                ],
+                "summary": "Single Log",
+                "parameters": [
+                    {
+                        "type": "sting",
+                        "description": "jwt token for auth",
+                        "name": "Authorization",
+                        "in": "header"
+                    },
+                    {
+                        "type": "string",
+                        "description": "log id",
+                        "name": "log_id",
+                        "in": "path"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/httphandler.Response"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/login": {
+            "post": {
+                "description": "Login to get jwt token",
+                "tags": [
+                    "Login"
+                ],
+                "summary": "Login to get jwt token",
+                "parameters": [
+                    {
+                        "description": "username and password",
+                        "name": "credential",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "$ref": "#/definitions/model.User"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/httphandler.Response"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/httphandler.Response"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/logs/job/{job_id}": {
+            "get": {
+                "description": "Get logs list",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Logs"
+                ],
+                "summary": "Logs list",
+                "parameters": [
+                    {
+                        "type": "sting",
+                        "description": "jwt token for auth",
+                        "name": "Authorization",
+                        "in": "header"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "get logs for a special job",
+                        "name": "job_id",
+                        "in": "path"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "0 query failed job logs, 1 query success job logs",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "page num",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 30,
+                        "description": "page size",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/httphandler.Response"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/register": {
+            "post": {
+                "description": "add user",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Register"
+                ],
+                "summary": "Register",
+                "parameters": [
+                    {
+                        "description": "username and password",
+                        "name": "credential",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "$ref": "#/definitions/param.User"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/httphandler.Response"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/httphandler.Response"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "httphandler.Response": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {
+                    "type": "object"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.User": {
+            "type": "object",
+            "properties": {
+                "password": {
+                    "type": "string"
+                },
+                "user_name": {
+                    "type": "string"
+                }
+            }
+        },
+        "param.AddJob": {
+            "type": "object",
+            "properties": {
+                "command": {
+                    "description": "command to run",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "job name",
+                    "type": "string"
+                },
+                "spec": {
+                    "description": "job spec",
+                    "type": "string"
+                },
+                "status": {
+                    "description": "0 stop，1 run",
+                    "type": "integer"
+                }
+            }
+        },
+        "param.ModifyJob": {
+            "type": "object",
+            "properties": {
+                "command": {
+                    "description": "command to run",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "job id",
+                    "type": "integer"
+                },
+                "name": {
+                    "description": "job name",
+                    "type": "string"
+                },
+                "spec": {
+                    "description": "job spec",
+                    "type": "string"
+                },
+                "status": {
+                    "description": "0 stop, 1 run",
+                    "type": "integer"
+                }
+            }
+        },
+        "param.User": {
+            "type": "object",
+            "properties": {
+                "password": {
+                    "description": "password",
+                    "type": "string"
+                },
+                "user_name": {
+                    "description": "username",
+                    "type": "string"
+                }
+            }
+        }
+    }
+}
