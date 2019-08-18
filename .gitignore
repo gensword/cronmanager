@@ -1,3 +1,2 @@
 .idea/
-logs/app.log
-logs/gin.log
+*.log
