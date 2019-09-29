@@ -3,7 +3,7 @@ package cron
 import (
 	"fmt"
 	"github.com/gensword/cornmanager/client"
-	"github.com/gensword/cornmanager/conf"
+	"github.com/gensword/cornmanager"
 	"github.com/gensword/cornmanager/jobs"
 	"github.com/gensword/cornmanager/model"
 	"github.com/jakecoffman/cron"
@@ -18,7 +18,7 @@ var MycronList MyCron = MyCron{
 }
 
 func (myCron MyCron) RmByJobIds(jobIds []int) error {
-	mysqlClient := conf.MsClient
+	mysqlClient := cronmanager.MsClient
 	for _, jobId := range jobIds {
 		myCron.RemoveJob(fmt.Sprintf("jobs%d", jobId))
 		client.RemoveJob(jobId)
@@ -37,7 +37,7 @@ func InitCrons() error {
 }
 
 func (mycron MyCron) StopJob(jobIds []int) error {
-	redisClient := conf.RedisClient
+	redisClient := cronmanager.RedisClient
 	for _, jobId := range jobIds {
 		mycron.RemoveJob(fmt.Sprintf("jobs%d", jobId))
 		_, err := redisClient.HSet(fmt.Sprintf("jobs%d", jobId), "Status", 0).Result()
@@ -49,7 +49,7 @@ func (mycron MyCron) StopJob(jobIds []int) error {
 }
 
 func (mycron MyCron) StartJob(jobIds []int) error {
-	redisClient := conf.RedisClient
+	redisClient := cronmanager.RedisClient
 	for _, jobId := range jobIds {
 		jobFields, err := redisClient.HGetAll(fmt.Sprintf("jobs%d", jobId)).Result()
 		if err != nil {

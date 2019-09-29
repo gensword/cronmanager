@@ -1,7 +1,7 @@
 package httphandler
 
 import (
-	"github.com/gensword/cornmanager/conf"
+	"github.com/gensword/cornmanager"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"io"
@@ -15,7 +15,7 @@ import (
 
 func GetRouter () *gin.Engine{
 	gin.DisableConsoleColor()
-	ginLog, err := os.Create(path.Join(conf.Config.GetString("log.path"), conf.Config.GetString("log.ginLog")))
+	ginLog, err := os.Create(path.Join(cronmanager.Config.GetString("log.path"), cronmanager.Config.GetString("log.ginLog")))
 	if err != nil {
 		panic(err)
 	}

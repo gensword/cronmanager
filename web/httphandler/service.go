@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gensword/cornmanager/client"
-	"github.com/gensword/cornmanager/conf"
+	"github.com/gensword/cornmanager"
 	"github.com/gensword/cornmanager/cron"
 	"github.com/gensword/cornmanager/jobs"
 	"github.com/gensword/cornmanager/model"
@@ -26,21 +26,21 @@ import (
 func Register(c *gin.Context) {
 	var user model.User
 	if err := c.Bind(&user); err != nil {
-		c.JSON(conf.BADREQUEST, &Response{Code:conf.BADREQUEST, Message:"bad params"})
+		c.JSON(cronmanager.BADREQUEST, &Response{Code:cronmanager.BADREQUEST, Message:"bad params"})
 		return
 	}
 	if user.Password == "" || user.UserName == "" {
-		c.JSON(conf.BADREQUEST, &Response{Code:conf.BADREQUEST, Message:"username and password are required"})
+		c.JSON(cronmanager.BADREQUEST, &Response{Code:cronmanager.BADREQUEST, Message:"username and password are required"})
 		return
 	}
-	if !conf.MsClient.Where(&model.User{UserName:user.UserName}).First(&model.User{}).RecordNotFound() {
-		c.JSON(conf.CONFLICT, &Response{Code:conf.CONFLICT, Message:"username already in use"})
+	if !cronmanager.MsClient.Where(&model.User{UserName:user.UserName}).First(&model.User{}).RecordNotFound() {
+		c.JSON(cronmanager.CONFLICT, &Response{Code:cronmanager.CONFLICT, Message:"username already in use"})
 		return
 	} else {
 		hashPassword, _ := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 		user.Password = string(hashPassword)
-		conf.MsClient.Create(&user)
-		c.JSON(conf.CREATED, &Response{Code:conf.CREATED, Message:"register success"})
+		cronmanager.MsClient.Create(&user)
+		c.JSON(cronmanager.CREATED, &Response{Code:cronmanager.CREATED, Message:"register success"})
 	}
 }
 
@@ -58,7 +58,7 @@ func GetJobList(c *gin.Context) {
 	status := c.DefaultQuery("status", "none")
 	jobName := c.DefaultQuery("job_name", "none")
 	if status == "none" && jobName == "none" {
-		c.JSON(conf.SUCCESS, &Response{Code:conf.SUCCESS, Data:jobList})
+		c.JSON(cronmanager.SUCCESS, &Response{Code:cronmanager.SUCCESS, Data:jobList})
 		return
 	} else {
 		jobsAfterFilter := make([]*jobs.Job, 0)
@@ -76,7 +76,7 @@ func GetJobList(c *gin.Context) {
 				}
 			}
 		}
-		c.JSON(conf.SUCCESS, &Response{Code:conf.SUCCESS, Data:jobsAfterFilter})
+		c.JSON(cronmanager.SUCCESS, &Response{Code:cronmanager.SUCCESS, Data:jobsAfterFilter})
 		return
 	}
 }
@@ -93,10 +93,10 @@ func GetJobList(c *gin.Context) {
 func GetJob(c *gin.Context) {
 	job, err := client.GetJob(fmt.Sprintf("jobs%s", strings.TrimLeft(c.Param("job_id"), "/")))
 	if err != nil {
-		c.JSON(conf.NOTFOUND, err.Error())
+		c.JSON(cronmanager.NOTFOUND, err.Error())
 		return
 	}
-	c.JSON(conf.SUCCESS, &Response{Code:conf.SUCCESS, Data:job})
+	c.JSON(cronmanager.SUCCESS, &Response{Code:cronmanager.SUCCESS, Data:job})
 }
 
 // @Summary Add a single job
@@ -110,18 +110,18 @@ func GetJob(c *gin.Context) {
 func AddJob(c *gin.Context) {
 	defer func() {
 		err := recover(); if err != nil {
-			c.JSON(conf.BADREQUEST, &Response{Code:conf.BADREQUEST, Message:"parse spec failed"})
+			c.JSON(cronmanager.BADREQUEST, &Response{Code:cronmanager.BADREQUEST, Message:"parse spec failed"})
 			return
 		}
 	}()
-	redisClient := conf.RedisClient
+	redisClient := cronmanager.RedisClient
 	redisClient.Lock.Lock()
 	defer redisClient.Lock.Unlock()
 	jobId := client.GenJobId()
 	var job jobs.Job
 	err := c.Bind(&job)
 	if err != nil {
-		c.JSON(conf.BADREQUEST, &Response{Code:conf.BADREQUEST, Message:"invalid params"})
+		c.JSON(cronmanager.BADREQUEST, &Response{Code:cronmanager.BADREQUEST, Message:"invalid params"})
 		return
 	}
 	job.CreateTime = time.Now().Format("2006-01-02 15:04:05")
@@ -129,8 +129,8 @@ func AddJob(c *gin.Context) {
 	job.Id = jobId
 	cron.MycronList.AddJob(job.Spec, &job, fmt.Sprintf("jobs%d", jobId))
 	client.AddJob(job)
-	conf.Logger.Info(fmt.Sprintf("add job %s", job.Name))
-	c.JSON(conf.SUCCESS, &Response{Code:conf.SUCCESS, Data:job})
+	cronmanager.Logger.Info(fmt.Sprintf("add job %s", job.Name))
+	c.JSON(cronmanager.SUCCESS, &Response{Code:cronmanager.SUCCESS, Data:job})
 }
 
 // @Summary Del a single job
@@ -145,17 +145,17 @@ func RemoveJob(c *gin.Context) {
 	jobIdStr := strings.TrimLeft(c.Param("job_id"), "/")
 	jobId, err := strconv.Atoi(jobIdStr)
 	if err != nil {
-		c.JSON(conf.BADREQUEST, "delete jobs failed")
+		c.JSON(cronmanager.BADREQUEST, "delete jobs failed")
 		return
 	}
 	job, err := client.GetJob(fmt.Sprintf("jobs%d", jobId))
 	if err != nil {
-		c.String(conf.NOTFOUND, "job not found")
+		c.String(cronmanager.NOTFOUND, "job not found")
 		return
 	}
 	cron.MycronList.RmByJobIds([]int{jobId})
-	conf.Logger.Info(fmt.Sprintf("remove job %s", job.Name))
-	c.JSON(conf.SUCCESS, &Response{Code:conf.SUCCESS, Message:"del success"})
+	cronmanager.Logger.Info(fmt.Sprintf("remove job %s", job.Name))
+	c.JSON(cronmanager.SUCCESS, &Response{Code:cronmanager.SUCCESS, Message:"del success"})
 }
 
 
@@ -172,12 +172,12 @@ func ChangeJob(c *gin.Context) {
 	var job jobs.Job
 	err := c.Bind(&job)
 	if err != nil {
-		c.JSON(conf.BADREQUEST, &Response{Code:conf.BADREQUEST, Message:"invalid params"})
+		c.JSON(cronmanager.BADREQUEST, &Response{Code:cronmanager.BADREQUEST, Message:"invalid params"})
 		return
 	}
 	originJob, err := client.GetJob(fmt.Sprintf("jobs%d", job.Id))
 	if err != nil {
-		c.JSON(conf.NOTFOUND, &Response{Code:conf.NOTFOUND, Message:"job not found"})
+		c.JSON(cronmanager.NOTFOUND, &Response{Code:cronmanager.NOTFOUND, Message:"job not found"})
 		return
 	}
 	job.CreateTime = originJob.CreateTime
@@ -187,15 +187,15 @@ func ChangeJob(c *gin.Context) {
 	defer func(jobId int) {
 		if err := recover(); err != nil {
 			cron.MycronList.StartJob([]int{jobId})
-			c.JSON(conf.BADREQUEST, &Response{Code:conf.BADREQUEST, Message:"parse spec failed"})
+			c.JSON(cronmanager.BADREQUEST, &Response{Code:cronmanager.BADREQUEST, Message:"parse spec failed"})
 		}
 	}(originJob.Id)
 	if job.Status == 1 {
 		cron.MycronList.AddJob(job.Spec, &job, fmt.Sprintf("jobs%d", job.Id))
 	}
 	client.ChangeJob(originJob.Id, job)
-	conf.Logger.Info(fmt.Sprintf("change job %s origin job %+v now job %+V", job.Name, originJob, job))
-	c.JSON(conf.SUCCESS, &Response{Code:conf.SUCCESS, Data:job})
+	cronmanager.Logger.Info(fmt.Sprintf("change job %s origin job %+v now job %+V", job.Name, originJob, job))
+	c.JSON(cronmanager.SUCCESS, &Response{Code:cronmanager.SUCCESS, Data:job})
 }
 
 // @Summary Logs list
@@ -215,7 +215,7 @@ func GetLogList(c *gin.Context) {
 	pageStr := c.DefaultQuery("page", "1")
 	statusStr := c.DefaultQuery("status", "none")
 	jobIdStr := strings.TrimLeft(c.Param("job_id"), "/")
-	msClient := conf.MsClient
+	msClient := cronmanager.MsClient
 	limit, _ := strconv.Atoi(limitStr)
 	page, _ := strconv.Atoi(pageStr)
 	var total, jobId, statusInt int
@@ -252,7 +252,7 @@ func GetLogList(c *gin.Context) {
 	} else {
 		msClient.Where("status = ? and job_id = ?", statusInt, jobId).Offset(start).Limit(limit).Find(&logList)
 	}
-	c.JSON(conf.SUCCESS, &Response{Code:conf.SUCCESS, Data:logList})
+	c.JSON(cronmanager.SUCCESS, &Response{Code:cronmanager.SUCCESS, Data:logList})
 }
 
 // @Summary Single Log
@@ -265,14 +265,14 @@ func GetLogList(c *gin.Context) {
 // @Router /log/{log_id} [get]
 func GetLog(c *gin.Context) {
 	var log model.Log
-	msClient :=  conf.MsClient
+	msClient :=  cronmanager.MsClient
 	logIdStr := strings.Trim(c.Param("log_id"), " ")
 	logId, _:= strconv.Atoi(logIdStr)
 	if msClient.Debug().Where("id = ?", logId).First(&log).RecordNotFound() {
-		c.String(conf.NOTFOUND, "log not found")
+		c.String(cronmanager.NOTFOUND, "log not found")
 		return
 	}
-	c.JSON(conf.SUCCESS, &Response{Code:conf.SUCCESS, Data:log})
+	c.JSON(cronmanager.SUCCESS, &Response{Code:cronmanager.SUCCESS, Data:log})
 }
 
 // @Summary Login to get jwt token
@@ -288,15 +288,15 @@ func Login(c *gin.Context) {
 		record model.User
 	)
 	if err := c.Bind(&user); err != nil {
-		c.JSON(conf.UNAUTH, &Response{Code:conf.UNAUTH, Message:"invalid credentials"})
+		c.JSON(cronmanager.UNAUTH, &Response{Code:cronmanager.UNAUTH, Message:"invalid credentials"})
 		return
 	}
-	if conf.MsClient.Where(&model.User{UserName:user.UserName}).First(&record).RecordNotFound() {
-		c.JSON(conf.UNAUTH, &Response{Code:conf.UNAUTH, Message:"invalid credentials"})
+	if cronmanager.MsClient.Where(&model.User{UserName:user.UserName}).First(&record).RecordNotFound() {
+		c.JSON(cronmanager.UNAUTH, &Response{Code:cronmanager.UNAUTH, Message:"invalid credentials"})
 		return
 	}
 	if err := bcrypt.CompareHashAndPassword([]byte(record.Password), []byte(user.Password)); err != nil {
-		c.JSON(conf.UNAUTH, &Response{Code:conf.UNAUTH, Message:"invalid credentials"})
+		c.JSON(cronmanager.UNAUTH, &Response{Code:cronmanager.UNAUTH, Message:"invalid credentials"})
 		return
 	}
 	claim := jwt.MapClaims{
@@ -306,10 +306,10 @@ func Login(c *gin.Context) {
 		"exp": time.Now().Add(time.Duration(24) * time.Hour),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claim)
-	tokenStr, err := token.SignedString([]byte(conf.Config.GetString("JWT.secretKey")))
+	tokenStr, err := token.SignedString([]byte(cronmanager.Config.GetString("JWT.secretKey")))
 	if err != nil {
-		c.JSON(conf.UNAUTH, &Response{Code:conf.UNAUTH, Message:"invalid credentials"})
+		c.JSON(cronmanager.UNAUTH, &Response{Code:cronmanager.UNAUTH, Message:"invalid credentials"})
 		return
 	}
-	c.JSON(conf.SUCCESS, &Response{Code:conf.SUCCESS, Data:tokenStr})
+	c.JSON(cronmanager.SUCCESS, &Response{Code:cronmanager.SUCCESS, Data:tokenStr})
 }

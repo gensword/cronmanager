@@ -1,0 +1,2 @@
+{"level":"info","ts":1569768772.503534,"caller":"main/main.go:51","msg":"server start"}
+{"level":"info","ts":1569768817.719317,"caller":"main/main.go:67","msg":"server shutdown normally"}

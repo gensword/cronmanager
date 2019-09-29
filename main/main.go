@@ -3,8 +3,8 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/gensword/cornmanager"
 	"github.com/gensword/cornmanager/client"
-	"github.com/gensword/cornmanager/conf"
 	"github.com/gensword/cornmanager/cron"
 	"github.com/gensword/cornmanager/model"
 	"github.com/gensword/cornmanager/web/httphandler"
@@ -26,8 +26,8 @@ func main() {
 	shouldCreateTable := flag.Bool("create_table", false, "should create table")
 	flag.Parse()
 	if *shouldCreateTable {
-		conf.MsClient.Set("gorm:table_options", "ENGINE=InnoDB").CreateTable(&model.User{})
-		conf.MsClient.Set("gorm:table_options", "ENGINE=InnoDB").CreateTable(&model.Log{})
+		cronmanager.MsClient.Set("gorm:table_options", "ENGINE=InnoDB").CreateTable(&model.User{})
+		cronmanager.MsClient.Set("gorm:table_options", "ENGINE=InnoDB").CreateTable(&model.Log{})
 	}
 
 	cron.InitCrons()
@@ -35,7 +35,7 @@ func main() {
 
 	router := httphandler.GetRouter()
 	srv := &http.Server{
-		Addr: fmt.Sprintf(":%d", conf.Config.GetInt("httpServer.port")),
+		Addr: fmt.Sprintf(":%d", cronmanager.Config.GetInt("httpServer.port")),
 		Handler: router,
 	}
 
@@ -48,7 +48,7 @@ func main() {
 	go func() {
 		client.Log()
 	}()
-	conf.Logger.Info("server start")
+	cronmanager.Logger.Info("server start")
 	done := make(chan bool)
 	sigs := make(chan os.Signal)
 	signal.Notify(sigs, syscall.SIGTERM, syscall.SIGINT)
@@ -63,6 +63,6 @@ func main() {
 	srv.Close()
 	cron.MycronList.Stop()
 	client.CloseClient()
-	conf.RedisClient.Close()
-	conf.Logger.Info("server shutdown normally")
+	cronmanager.RedisClient.Close()
+	cronmanager.Logger.Info("server shutdown normally")
 }

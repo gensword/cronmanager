@@ -17,4 +17,4 @@ log:
   fileName: "app.log"
   ginLog: "gin.log"
 JWT:
-  secretKey:
+  secretKey: "cronmanager"
